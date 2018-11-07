@@ -1,0 +1,35 @@
+pragma solidity ^0.4.20;
+
+/******
+存在、真实性和所有权合约的证明
+将成对存储文件哈希和所有者名字，以实现所有权证明（proof of ownership),
+成对存储文件哈希和区块时间戳以实现存在证明(Proof of existence),
+最后，存储哈希自身证明文件真实性。
+如果文件修改了，则它的哈希会随之改变，合约就不能发现任何这样的文件了，由此证明文件被修改了。
+******/
+
+contract Proof {
+    struct FileDetails {
+        uint timestamp;
+        string owner;
+    }
+    
+    mapping (string => FileDetails) files;
+    
+    event logFileAddedStatus(bool status, uint timestamp, string owner, string fileHash);
+    
+    //This is used to store the owner of file at the block timestamp
+    function set(string owner, string fileHash) public {
+        if (files[fileHash].timestamp == 0) {
+            files[fileHash] = FileDetails(block.timestamp, owner);
+            emit logFileAddedStatus(true, block.timestamp, owner, fileHash);
+        }
+        else {
+            emit logFileAddedStatus(false, block.timestamp, owner, fileHash);
+        }
+    }
+    
+    function get (string fileHash) public view returns (uint timestamp, string owner) {
+        return (files[fileHash].timestamp, files[fileHash].owner);
+    }
+}
